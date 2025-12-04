@@ -9,7 +9,7 @@ function switchTab(tab) {
         loginForm.classList.remove('hidden');
         registerForm.classList.add('hidden');
         
-        loginTab.classList.add('bg-blue-500', 'text-white');
+        loginTab.classList.add('bg-green-500', 'text-white');
         loginTab.classList.remove('text-gray-400');
         
         registerTab.classList.add('text-gray-400');
@@ -24,7 +24,7 @@ function switchTab(tab) {
         registerTab.classList.remove('text-gray-400');
         
         loginTab.classList.add('text-gray-400');
-        loginTab.classList.remove('bg-blue-500', 'text-white');
+        loginTab.classList.remove('bg-green-500', 'text-white');
     }
     
     window.location.hash = tab;
@@ -33,7 +33,7 @@ function switchTab(tab) {
 loginTab.addEventListener('click', () => switchTab('login'));
 registerTab.addEventListener('click', () => switchTab('register'));
 
-// Restore active tab on page load
+
 window.addEventListener('DOMContentLoaded', () => {
     const hash = window.location.hash.slice(1);
     if (hash === 'register') {
