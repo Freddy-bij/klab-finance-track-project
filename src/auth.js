@@ -5,7 +5,7 @@ import {
     signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-// ========== SELECTORS ==========
+
 const loginEmail = document.querySelector('#loginForm input[type="email"]');
 const loginPassword = document.querySelector('#loginForm input[type="password"]');
 const loginBtn = document.querySelector('#loginForm button');

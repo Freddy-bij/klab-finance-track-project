@@ -239,3 +239,86 @@ if (categoryCtx) {
         }
     });
 }
+
+
+// SETTINGS INNER TAB SWITCH SYSTEM
+
+
+
+const settingTabs = document.querySelectorAll('.setting-tab');
+const settingContents = document.querySelectorAll('.setting-content');
+
+function switchSettingTab(tab) {
+
+    settingContents.forEach(section => section.classList.add('hidden'));
+
+  
+    settingTabs.forEach(btn => {
+        btn.classList.remove('bg-white', 'shadow');
+        btn.classList.add('bg-transparent');
+
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('h1');
+
+        icon.classList.remove('text-gray-900');
+        icon.classList.add('text-gray-600');
+
+        text.classList.remove('text-gray-900');
+        text.classList.add('text-gray-600');
+    });
+
+
+    document.getElementById(tab).classList.remove('hidden');
+
+
+    const active = document.querySelector(`[data-setting="${tab}"]`);
+    active.classList.add('bg-white', 'shadow');
+
+    const icon = active.querySelector('i');
+    const text = active.querySelector('h1');
+
+    icon.classList.add('text-gray-900');
+    text.classList.add('text-gray-900');
+
+  
+    localStorage.setItem("activeSettingTab", tab);
+}
+
+
+settingTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.getAttribute('data-setting');
+        switchSettingTab(target);
+    });
+});
+
+
+const savedTab = localStorage.getItem("activeSettingTab");
+
+if (savedTab) {
+    switchSettingTab(savedTab);
+} else {
+    switchSettingTab("profile"); 
+}
+
+//   BTN toggle
+
+const toggleBtn = document.getElementById("toggleBtn");
+const toggleCircle = document.getElementById("toggleCircle");
+
+let isOn = false; 
+
+toggleBtn.addEventListener("click", () => {
+    isOn = !isOn;
+
+    if (isOn) {
+        toggleBtn.classList.remove("bg-gray-300");
+        toggleBtn.classList.add("bg-green-500");
+        toggleCircle.classList.add("translate-x-6"); 
+    } else {
+        toggleBtn.classList.add("bg-gray-300");
+        toggleBtn.classList.remove("bg-green-500");
+        toggleCircle.classList.remove("translate-x-6"); 
+    }
+});
+
