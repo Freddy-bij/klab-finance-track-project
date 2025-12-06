@@ -40,6 +40,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (hash && ['dashboard', 'transaction', 'categories', 'analystics', 'settings'].includes(hash)) {
         switchTab(hash);
     }
+    
+    // Load transactions when page loads
+    setTimeout(loadTransactions, 1000); // Wait for Firebase to initialize
 });
 
 // Balance Trend Chart (Dashboard)
@@ -240,19 +243,13 @@ if (categoryCtx) {
     });
 }
 
-
 // SETTINGS INNER TAB SWITCH SYSTEM
-
-
-
 const settingTabs = document.querySelectorAll('.setting-tab');
 const settingContents = document.querySelectorAll('.setting-content');
 
 function switchSettingTab(tab) {
-
     settingContents.forEach(section => section.classList.add('hidden'));
-
-  
+    
     settingTabs.forEach(btn => {
         btn.classList.remove('bg-white', 'shadow');
         btn.classList.add('bg-transparent');
@@ -267,9 +264,7 @@ function switchSettingTab(tab) {
         text.classList.add('text-gray-600');
     });
 
-
     document.getElementById(tab).classList.remove('hidden');
-
 
     const active = document.querySelector(`[data-setting="${tab}"]`);
     active.classList.add('bg-white', 'shadow');
@@ -279,11 +274,9 @@ function switchSettingTab(tab) {
 
     icon.classList.add('text-gray-900');
     text.classList.add('text-gray-900');
-
   
     localStorage.setItem("activeSettingTab", tab);
 }
-
 
 settingTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -292,17 +285,14 @@ settingTabs.forEach(tab => {
     });
 });
 
-
 const savedTab = localStorage.getItem("activeSettingTab");
-
 if (savedTab) {
     switchSettingTab(savedTab);
 } else {
     switchSettingTab("profile"); 
 }
 
-//   BTN toggle
-
+// BTN toggle
 const toggleBtn = document.getElementById("toggleBtn");
 const toggleCircle = document.getElementById("toggleCircle");
 
