@@ -1,53 +1,5 @@
 // ============= FIREBASE INTEGRATION =============
 
-
-transactionForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const amount = document.getElementById('amount').value;
-    const category = document.getElementById('category').value;
-    const date = document.getElementById('date').value;
-    const description = document.getElementById('description').value;
-    
-    // Create transaction object
-    const transaction = {
-        type: transactionType,
-        amount: parseFloat(amount),
-        category,
-        date,
-        description
-    };
-    
-    console.log('Submitting transaction:', transaction);
-    
-    // Show loading state
-    const submitBtn = transactionForm.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Saving...';
-    submitBtn.disabled = true;
-    
-    try {
-        // Add to Firebase
-        const result = await window.firebaseDB.addTransaction(transaction);
-        
-        if (result.success) {
-            alert(`✅ Transaction added successfully!\nType:`);
-            closeModal();
-            
-            // Reload transactions
-            await loadTransactions();
-        } else {
-            alert('❌ Error adding transaction: ' + result.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error adding transaction. Please check console.');
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }
-});
-
 // Load transactions from Firebase and display them
 async function loadTransactions() {
     try {
@@ -76,7 +28,7 @@ async function loadTransactions() {
 
 // Update Recent Transactions section on Dashboard
 function updateRecentTransactions(transactions) {
-    const recentSection = document.querySelector('#dashboard-content .space-y-4');
+    const recentSection = document.querySelector('#dashboard-content .rounded-lg.p-6.card-shadow .space-y-4');
     if (!recentSection) return;
     
     if (transactions.length === 0) {
@@ -118,7 +70,7 @@ function updateRecentTransactions(transactions) {
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="font-semibold ${textColor}">${amountSign}${t.amount.toFixed(2)}</p>
+                    <p class="font-semibold ${textColor}">${amountSign}$${t.amount.toFixed(2)}</p>
                     <p class="text-sm text-gray-600">${formattedDate}</p>
                 </div>
             </div>
@@ -162,7 +114,7 @@ function updateTransactionPage(transactions) {
                         <p class="text-sm text-gray-500">${t.category} - ${formattedDate}</p>
                     </div>
                 </div>
-                <span class="${textColor} font-bold">${amountSign}${t.amount.toFixed(2)}</span>
+                <span class="${textColor} font-bold">${amountSign}$${t.amount.toFixed(2)}</span>
             </div>
         `;
     }).join('');
@@ -171,33 +123,104 @@ function updateTransactionPage(transactions) {
 // Update Statistics
 function updateStatistics(stats) {
     // Update Dashboard cards
-    const totalBalanceEl = document.querySelector('#dashboard-content .text-3xl.font-bold.text-gray-900');
-    const monthIncomeEl = document.querySelectorAll('#dashboard-content .text-3xl.font-bold.text-gray-900')[1];
-    const monthExpenseEl = document.querySelectorAll('#dashboard-content .text-3xl.font-bold.text-gray-900')[2];
-    
-    if (totalBalanceEl) totalBalanceEl.textContent = `${stats.balance}`;
-    if (monthIncomeEl) monthIncomeEl.textContent = `${stats.totalIncome}`;
-    if (monthExpenseEl) monthExpenseEl.textContent = `${stats.totalExpense}`;
+    const dashboardCards = document.querySelectorAll('#dashboard-content .text-3xl.font-bold.text-gray-900');
+    if (dashboardCards.length >= 3) {
+        dashboardCards[0].textContent = `$${stats.balance}`;
+        dashboardCards[1].textContent = `$${stats.totalIncome}`;
+        dashboardCards[2].textContent = `$${stats.totalExpense}`;
+    }
     
     // Update Transaction Page stats
     const transactionPageIncome = document.querySelector('#transaction-content .text-green-700');
     const transactionPageExpense = document.querySelector('#transaction-content .text-red-700');
-    const transactionPageBalance = document.querySelector('#transaction-content span:not([class*="text-"])');
     
-    if (transactionPageIncome) transactionPageIncome.textContent = `${stats.totalIncome}`;
-    if (transactionPageExpense) transactionPageExpense.textContent = `${stats.totalExpense}`;
-    if (transactionPageBalance) transactionPageBalance.textContent = `${stats.balance}`;
+    if (transactionPageIncome) transactionPageIncome.textContent = `$${stats.totalIncome}`;
+    if (transactionPageExpense) transactionPageExpense.textContent = `$${stats.totalExpense}`;
 }
 
 // Handle receipt file selection
-document.getElementById('receipt').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const label = e.target.nextElementSibling;
-        label.innerHTML = `
-            <i class="fa fa-check-circle text-green-500 text-2xl mb-2"></i>
-            <p class="text-sm text-gray-700 font-medium">${file.name}</p>
-            <p class="text-xs text-gray-500 mt-1">Click to change</p>
-        `;
-    }
+const receiptInput = document.getElementById('receipt');
+if (receiptInput) {
+    receiptInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const label = e.target.nextElementSibling;
+            if (label) {
+                label.innerHTML = `
+                    <i class="fa fa-check-circle text-green-500 text-2xl mb-2"></i>
+                    <p class="text-sm text-gray-700 font-medium">${file.name}</p>
+                    <p class="text-xs text-gray-500 mt-1">Click to change</p>
+                `;
+            }
+        }
+    });
+}
+
+// Wait for everything to load, then set up form submission
+window.addEventListener('DOMContentLoaded', () => {
+    // Wait for Firebase to initialize
+    setTimeout(() => {
+        const transactionForm = document.getElementById('transactionForm');
+        
+        if (transactionForm) {
+            transactionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const amount = document.getElementById('amount').value;
+                const category = document.getElementById('category').value;
+                const date = document.getElementById('date').value;
+                const description = document.getElementById('description').value;
+                
+                // Get transaction type from global variable (set in transation-model.js)
+                const type = window.transactionType || 'expense';
+                
+                // Create transaction object
+                const transaction = {
+                    type: type,
+                    amount: parseFloat(amount),
+                    category,
+                    date,
+                    description
+                };
+                
+                console.log('Submitting transaction:', transaction);
+                
+                // Show loading state
+                const submitBtn = transactionForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+                
+                try {
+                    // Add to Firebase
+                    const result = await window.firebaseDB.addTransaction(transaction);
+                    
+                    if (result.success) {
+                        alert(`✅ Transaction added successfully!\nType: ${type}\nAmount: $${amount}\nCategory: ${category}`);
+                        
+                        // Close modal
+                        if (typeof window.closeModal === 'function') {
+                            window.closeModal();
+                        }
+                        
+                        // Reload transactions
+                        await loadTransactions();
+                    } else {
+                        alert('❌ Error adding transaction: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('❌ Error adding transaction. Please check console.');
+                } finally {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            console.log('✅ Form submission handler attached');
+        }
+        
+        // Load initial transactions
+        loadTransactions();
+    }, 1500);
 });
