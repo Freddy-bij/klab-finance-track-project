@@ -196,9 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 color: color,
                 createdAt: new Date().toISOString()
             });
-            console.log('✅ Category added successfully');
+            console.log(' Category added successfully');
         } catch (error) {
-            console.error('❌ Error adding category:', error);
+            console.error(' Error adding category:', error);
             alert('Error adding category. Check console for details.');
         }
     }
@@ -213,9 +213,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 color: color,
                 updatedAt: new Date().toISOString()
             });
-            console.log('✅ Category updated successfully');
+            console.log(' Category updated successfully');
         } catch (error) {
-            console.error('❌ Error updating category:', error);
+            console.error(' Error updating category:', error);
             alert('Error updating category. Check console for details.');
         }
     }
@@ -225,9 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to delete this category?')) {
             try {
                 await deleteDoc(doc(db, 'categories', id));
-                console.log('✅ Category deleted successfully');
+                console.log('Category deleted successfully');
             } catch (error) {
-                console.error('❌ Error deleting category:', error);
+                console.error(' Error deleting category:', error);
                 alert('Error deleting category. Check console for details.');
             }
         }

@@ -9,15 +9,15 @@
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <title>Dashboard</title>
+    <title>FINANCE TRACK-Dashboard/</title>
 </head>
 
 <body>
     <div class="bg-gray-100 min-h-screen flex overflow-hidden">
 
-        <div id="sidebar" class="bg-white fixed md:static   left-0   w-[60%] md:w-[15%] p-4 
+        <div id="sidebar" class="bg-white fixed top-0 h-screen    left-0   w-[60%] md:w-[15%] p-4 
     transform -translate-x-full md:translate-x-0 transition-transform duration-300 
-    flex flex-col justify-between z-50">
+    flex flex-col justify-between z-50 overflow-y-auto">
             <div>
                 <div class="mb-6 hidden md:flex ">
                     <div>
@@ -82,9 +82,9 @@
         </div>
 
 
-        <div class="flex-1 flex flex-col ">
+        <div class="flex-1 flex flex-col md:ml-[15%] ">
 
-            <nav class="bg-white  flex justify-between items-center w-full p-4 shadow-sm">
+            <nav class="bg-white fixed top-0 right-0 left-0 md:left-[15%]   flex justify-between items-center w-full md:[85%] p-4 shadow-sm z-40">
 
                 <div class="flex gap-2 items-center">
                     <button id="menuBtn" class="md:hidden text-2xl">
@@ -115,14 +115,11 @@
             </nav>
 
 
-            <div class="flex-1 p-6 overflow-y-auto">
+            <div class="flex-1 p-6 overflow-y-auto mt-[72px]">
 
                 <div id="dashboard-content" class="tab-content">
 
                     <div class="max-w-7xl mx-auto p-8">
-
-
-
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 

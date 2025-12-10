@@ -3,6 +3,10 @@
 // This file handles displaying transactions and UI updates
 
 let allTransactions = []; // Store all transactions globally
+let filteredTransactions = []; // Store the currently filtered transactions
+
+
+
 
 // Load transactions from Firebase and display them
 async function loadTransactions() {
@@ -32,9 +36,14 @@ async function loadTransactions() {
         
         // Update Recent Transactions on Dashboard
         updateRecentTransactions(transactions.slice(0, 5));
+
+        // Set the initial filtered list to all transactions
+        filteredTransactions = transactions;
         
-        // Update Transaction Page
-        updateTransactionPage(transactions);
+        // Update Transaction Page with the initial (unfiltered) list
+        updateTransactionPage(filteredTransactions);
+        
+// ...
         
         // Update Statistics
         updateStatistics(stats);
@@ -122,7 +131,12 @@ function updateRecentTransactions(transactions) {
 
 // Update Transaction Page with edit/delete buttons
 function updateTransactionPage(transactions) {
+
+
     const transactionList = document.querySelector('#transaction-content .space-y-4:last-child');
+    
+    // Use the transactions parameter (which will be the filtered list)
+    
     if (!transactionList) return;
     
     if (transactions.length === 0) {
@@ -443,6 +457,19 @@ window.addEventListener('DOMContentLoaded', () => {
             
             console.log('✅ Form submission handler attached');
         }
+
+        // --- ADD FILTER EVENT LISTENERS HERE ---
+        const searchInput = document.getElementById('search-transaction');
+        const typeSelect = document.getElementById('filter-type');
+        const categorySelect = document.getElementById('filter-category');
+        const clearBtn = document.getElementById('clear-filter-btn');
+
+        if (searchInput) searchInput.addEventListener('input', filterTransactions);
+        if (typeSelect) typeSelect.addEventListener('change', filterTransactions);
+        if (categorySelect) categorySelect.addEventListener('change', filterTransactions);
+        if (clearBtn) clearBtn.addEventListener('click', clearFilters);
+        
+        console.log('✅ Filter event listeners attached');
         
         // Load initial transactions
         loadTransactions();
@@ -450,3 +477,42 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ firebase-integration.js loaded');
+
+
+/**
+ * Filters the global list of transactions based on UI input and updates the display.
+ */
+function filterTransactions() {
+    const searchTerm = document.getElementById('search-transaction').value.toLowerCase().trim();
+    const filterType = document.getElementById('filter-type').value;
+    const filterCategory = document.getElementById('filter-category').value;
+
+    filteredTransactions = allTransactions.filter(transaction => {
+        const matchesSearch = searchTerm === '' || 
+                              transaction.description.toLowerCase().includes(searchTerm) ||
+                              transaction.category.toLowerCase().includes(searchTerm);
+        
+        const matchesType = filterType === '' || transaction.type === filterType;
+
+        const matchesCategory = filterCategory === '' || transaction.category === filterCategory;
+
+        return matchesSearch && matchesType && matchesCategory;
+    });
+
+    console.log('Filtered transactions count:', filteredTransactions.length);
+    
+    // Update the transaction list display with the filtered results
+    updateTransactionPage(filteredTransactions);
+}
+
+/**
+ * Clears all filter inputs and reloads all transactions.
+ */
+function clearFilters() {
+    document.getElementById('search-transaction').value = '';
+    document.getElementById('filter-type').value = '';
+    document.getElementById('filter-category').value = '';
+    
+    // Re-apply filters, which will now show all transactions
+    filterTransactions();
+}
