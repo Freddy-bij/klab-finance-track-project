@@ -1,17 +1,47 @@
+
+
+
+// Firebase Configuration - Replace with your actual config
+  const firebaseConfig = {
+
+    apiKey: "AIzaSyCcA1SCPkyoxrku-mD1_5GbPDSUfz8XW50",
+
+    authDomain: "finance-track-500fa.firebaseapp.com",
+
+    projectId: "finance-track-500fa",
+
+    storageBucket: "finance-track-500fa.firebasestorage.app",
+
+    messagingSenderId: "90116850858",
+
+    appId: "1:90116850858:web:a6733771feb65d711cbcd3",
+
+    measurementId: "G-21BEF5XHDM"
+
+  };
+
+
+// Initialize Firebase
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    updateDoc, 
+    deleteDoc, 
+    doc, 
+    onSnapshot 
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // Wrap everything in DOMContentLoaded to ensure DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Initial categories data
-    let categories = [
-        { id: 1, name: 'Salary', type: 'income', color: 'green' },
-        { id: 2, name: 'Freelance', type: 'income', color: 'green' },
-        { id: 3, name: 'Food', type: 'expense', color: 'orange' },
-        { id: 4, name: 'Entertainment', type: 'expense', color: 'purple' },
-        { id: 5, name: 'Transportation', type: 'expense', color: 'red' },
-        { id: 6, name: 'Utilities', type: 'expense', color: 'yellow' }
-    ];
-
-    let nextId = 7;
+    let categories = [];
+    let editingCategoryId = null;
 
     // Color mapping
     const colorClasses = {
@@ -31,6 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const categoryForm = document.getElementById('categoryForm');
+    const modalTitle = modal ? modal.querySelector('h3') : null;
+    const submitBtn = categoryForm ? categoryForm.querySelector('button[type="submit"]') : null;
 
     // Check if elements exist before adding listeners
     if (!modal || !addCategoryBtn || !closeModalBtn || !cancelBtn || !categoryForm) {
@@ -39,8 +71,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Show modal
-    function showModal() {
+    function showModal(isEdit = false) {
         modal.classList.remove('hidden');
+        if (isEdit) {
+            if (modalTitle) modalTitle.textContent = 'Edit Category';
+            if (submitBtn) submitBtn.textContent = 'Update';
+        } else {
+            if (modalTitle) modalTitle.textContent = 'Add New Category';
+            if (submitBtn) submitBtn.textContent = 'Create';
+            editingCategoryId = null;
+        }
         document.getElementById('categoryName').focus();
     }
 
@@ -48,6 +88,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideModal() {
         modal.classList.add('hidden');
         categoryForm.reset();
+        editingCategoryId = null;
+    }
+
+    // Load categories from Firestore with real-time updates
+    function loadCategories() {
+        const categoriesRef = collection(db, 'categories');
+        
+        // Real-time listener - updates automatically when data changes
+        onSnapshot(categoriesRef, (snapshot) => {
+            categories = [];
+            snapshot.forEach((docSnap) => {
+                categories.push({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                });
+            });
+            renderCategories();
+        }, (error) => {
+            console.error('Error loading categories:', error);
+            alert('Error loading categories from Firestore. Check console for details.');
+        });
     }
 
     // Render categories
@@ -115,43 +176,77 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listeners to dynamically created buttons
         document.querySelectorAll('.delete-category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                deleteCategory(parseInt(this.dataset.id));
+                deleteCategory(this.dataset.id);
             });
         });
 
         document.querySelectorAll('.edit-category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                editCategory(parseInt(this.dataset.id));
+                editCategory(this.dataset.id);
             });
         });
     }
 
-    // Add category
-    function addCategory(name, type, color) {
-        categories.push({
-            id: nextId++,
-            name: name,
-            type: type,
-            color: color
-        });
-        renderCategories();
-    }
-
-    // Delete category
-    function deleteCategory(id) {
-        if (confirm('Are you sure you want to delete this category?')) {
-            categories = categories.filter(c => c.id !== id);
-            renderCategories();
+    // Add category to Firestore
+    async function addCategory(name, type, color) {
+        try {
+            await addDoc(collection(db, 'categories'), {
+                name: name,
+                type: type,
+                color: color,
+                createdAt: new Date().toISOString()
+            });
+            console.log('✅ Category added successfully');
+        } catch (error) {
+            console.error('❌ Error adding category:', error);
+            alert('Error adding category. Check console for details.');
         }
     }
 
-    // Edit category (placeholder)
+    // Update category in Firestore
+    async function updateCategory(id, name, type, color) {
+        try {
+            const categoryRef = doc(db, 'categories', id);
+            await updateDoc(categoryRef, {
+                name: name,
+                type: type,
+                color: color,
+                updatedAt: new Date().toISOString()
+            });
+            console.log('✅ Category updated successfully');
+        } catch (error) {
+            console.error('❌ Error updating category:', error);
+            alert('Error updating category. Check console for details.');
+        }
+    }
+
+    // Delete category from Firestore
+    async function deleteCategory(id) {
+        if (confirm('Are you sure you want to delete this category?')) {
+            try {
+                await deleteDoc(doc(db, 'categories', id));
+                console.log('✅ Category deleted successfully');
+            } catch (error) {
+                console.error('❌ Error deleting category:', error);
+                alert('Error deleting category. Check console for details.');
+            }
+        }
+    }
+
+    // Edit category - populate form with existing data
     function editCategory(id) {
-        alert('Edit functionality coming soon!');
+        const category = categories.find(c => c.id === id);
+        if (category) {
+            editingCategoryId = id;
+            document.getElementById('categoryName').value = category.name;
+            document.getElementById('categoryType').value = category.type;
+            document.getElementById('categoryColor').value = category.color;
+            showModal(true);
+        }
     }
 
     // Event listeners
-    addCategoryBtn.addEventListener('click', showModal);
+    addCategoryBtn.addEventListener('click', () => showModal(false));
     closeModalBtn.addEventListener('click', hideModal);
     cancelBtn.addEventListener('click', hideModal);
 
@@ -163,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle form submission
-    categoryForm.addEventListener('submit', (e) => {
+    categoryForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const name = document.getElementById('categoryName').value.trim();
@@ -171,11 +266,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const color = document.getElementById('categoryColor').value;
 
         if (name) {
-            addCategory(name, type, color);
+            if (editingCategoryId) {
+                // Update existing category
+                await updateCategory(editingCategoryId, name, type, color);
+            } else {
+                // Add new category
+                await addCategory(name, type, color);
+            }
             hideModal();
         }
     });
 
-    // Initial render
-    renderCategories();
+    // Initial load from Firestore
+    loadCategories();
 });
